@@ -649,7 +649,7 @@ if not app.debug:
     app.logger.addHandler(file_handler)
     app.logger.info("errors")
 
-#enabling debug mode.
+#enabling debug mode..
 if __name__ == "__main__":
     app.debug = True
     app.run(host="0.0.0.0")
