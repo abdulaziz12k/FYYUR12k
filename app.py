@@ -11,6 +11,8 @@ from forms import *
 from flask_migrate import Migrate
 import sys
 from sqlalchemy import func
+from models import *
+
 # ----------------------------------------------------------------------------#
 # App Config.
 # ----------------------------------------------------------------------------#
@@ -19,68 +21,19 @@ app.config[
     "SQLALCHEMY_DATABASE_URI"
 ] = "postgresql://postgres:azoozyh1122@localhost:5432/project"
 db = SQLAlchemy(app)
+session = db.session
 migrate = Migrate(app, db)
 moment = Moment(app)
 app.config.from_object("config")
-#..
 # ----------------------------------------------------------------------------#
 # Models.
-# ----------------------------------------------------------------------------#
+#  imported in the top using ( from models import * )  #
 # +++++ USE FLASK DB INIT THEN MIGRATE THEN UPGRADE TO GENERATE THE TABLES++++++ #
-
-
-class Venue(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    genres = db.Column(db.ARRAY(db.String()))
-    address = db.Column(db.String(120))
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
-    website = db.Column(db.String(120))
-    seeking_talent = db.Column(db.Boolean)
-    seeking_description = db.Column(db.String(500))
-    shows = db.relationship("Show", backref="venue", lazy=True)
-
-    def __repr__(self):
-        return "<Venue {}>".format(self.name)
-
-
-class Artist(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    genres = db.Column(db.ARRAY(db.String))
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    website = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
-    seeking_venue = db.Column(db.Boolean)
-    seeking_description = db.Column(db.String(500))
-    shows = db.relationship("Show", backref="artist", lazy=True)
-
-    def __repr__(self):
-        return "<Artist {}>".format(self.name)
-
-
-class Show(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    artist_id = db.Column(db.Integer, db.ForeignKey("artist.id"), nullable=False)
-    venue_id = db.Column(db.Integer, db.ForeignKey("venue.id"), nullable=False)
-    start_time = db.Column(db.DateTime, nullable=False)
-
-    def __repr__(self):
-        return "<Show {}{}>".format(self.artist_id, self.venue_id)
 
 
 # ----------------------------------------------------------------------------#
 # Filters.
 # ----------------------------------------------------------------------------#
-
-
 def format_datetime(value, format="medium"):
     date = dateutil.parser.parse(value)
     if format == "full":
@@ -109,19 +62,25 @@ def venues():
     venue_display = Venue.query.all()
     data = []
     for venue in venue_display:
-        area_venues = Venue.query.filter_by(state=venue.state).filter_by(city=venue.city).all()
+        area_venues = (
+            Venue.query.filter_by(state=venue.state).filter_by(city=venue.city).all()
+        )
         venue_data = []
         for venue in area_venues:
-            venue_data.append({
-                #referring to venues.html tags#
-                "id": venue.id,
-                "name": venue.name,
-                #used count()to sum the number of shows#
-                "num_upcoming_shows": Show.query.count()
-            })
-            #to show details on city,state and venues on venues main page#
+            venue_data.append(
+                {
+                    # referring to venues.html tags#
+                    "id": venue.id,
+                    "name": venue.name,
+                    # used count()to sum the number of shows#
+                    "num_upcoming_shows": Show.query.count(),
+                }
+            )
+            # to show details on city,state and venues on venues main page#
         data.append({"city": venue.city, "state": venue.state, "venues": venue_data})
-    return render_template("pages/venues.html",areas=data)# areas referres to venues.html#
+    return render_template(
+        "pages/venues.html", areas=data
+    )  # areas referres to venues.html#
 
 
 @app.route("/venues/search", methods=["POST"])
@@ -161,13 +120,13 @@ def search_venues():
     )
 
 
+# display page according to venue
 @app.route("/venues/<int:venue_id>")
 def show_venue(venue_id):
     # shows the venue page with the given venue_id
     venue = Venue.query.get(venue_id)
     if not venue:
         return render_template("errors/404.html")
-
     upcoming_shows_query = (
         db.session.query(Show)
         .join(Artist)
@@ -185,7 +144,6 @@ def show_venue(venue_id):
         .all()
     )
     past_shows = []
-
     for show in past_shows_query:
         past_shows.append(
             {
@@ -235,50 +193,30 @@ def create_venue_form():
     return render_template("forms/new_venue.html", form=form)
 
 
+#  Creating Venue
+# -----------------------------------------------------------------
+
+
 @app.route("/venues/create", methods=["POST"])
 def create_venue_submission():
-    error = False
     try:
-        name = request.form["name"]
-        city = request.form["city"]
-        state = request.form["state"]
-        address = request.form["address"]
-        phone = request.form["phone"]
-        genres = request.form.getlist("genres")
-        image_link = request.form["image_link"]
-        facebook_link = request.form["facebook_link"]
-        website = request.form["website"]
-        seeking_talent = True if "seeking_talent" in request.form else False
-        seeking_description = request.form["seeking_description"]
-
+        form = VenueForm(request.form)
         venue = Venue(
-            name=name,
-            city=city,
-            state=state,
-            address=address,
-            phone=phone,
-            genres=genres,
-            facebook_link=facebook_link,
-            image_link=image_link,
-            website=website,
-            seeking_talent=seeking_talent,
-            seeking_description=seeking_description,
+            name=form.name.data,
+            city=form.city.data,
+            state=form.state.data,
+            address=form.address.data,
+            phone=form.phone.data,
+            genres=form.genres.data,
+            facebook_link=form.facebook_link.data,
+            image_link=form.image_link.data,
         )
         db.session.add(venue)
         db.session.commit()
-    except:
-        error = True
+        flash("Venue: {0} created successfully".format(venue.name))
+    except Exception as err:
+        flash("An error occurred creating the Venue: {0}. Error: {1}".format(err))
         db.session.rollback()
-        print(sys.exc_info())
-    finally:
-        db.session.close()
-    if error:
-        flash(
-            "An error occurred. Venue " + request.form["name"] + " could not be listed."
-        )
-    # on successful db insert, flash success
-    if not error:
-        flash("Venue " + request.form["name"] + " was successfully listed!")
     return render_template("pages/home.html")
 
 
@@ -649,7 +587,7 @@ if not app.debug:
     app.logger.addHandler(file_handler)
     app.logger.info("errors")
 
-#enabling debug mode....
+# enabling debug mode....
 if __name__ == "__main__":
     app.debug = True
     app.run(host="0.0.0.0")
