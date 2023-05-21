@@ -195,8 +195,6 @@ def create_venue_form():
 
 #  Creating Venue
 # -----------------------------------------------------------------
-
-
 @app.route("/venues/create", methods=["POST"])
 def create_venue_submission():
     try:
@@ -278,7 +276,6 @@ def search_artists():
         search_term=request.form.get("search_term", ""),
     )
 
-
 @app.route("/artists/<int:artist_id>")
 def show_artist(artist_id):
     artist_query = db.session.query(Artist).get(artist_id)
@@ -302,7 +299,6 @@ def show_artist(artist_id):
                 "start_time": show.start_time.strftime("%Y-%m-%d %H:%M:%S"),
             }
         )
-
     upcoming_shows_query = (
         db.session.query(Show)
         .join(Venue)
@@ -311,7 +307,6 @@ def show_artist(artist_id):
         .all()
     )
     upcoming_shows = []
-
     for show in upcoming_shows_query:
         upcoming_shows.append(
             {
@@ -338,7 +333,6 @@ def show_artist(artist_id):
         "past_shows_count": len(past_shows),
         "upcoming_shows_count": len(upcoming_shows),
     }
-
     return render_template("pages/show_artist.html", artist=data)
 
 
@@ -449,16 +443,15 @@ def edit_venue_submission(venue_id):
     return redirect(url_for("show_venue", venue_id=venue_id))
 
 
-#  Create Artist
+#  Create new Artist
 #  ----------------------------------------------------------------
-
 
 @app.route("/artists/create", methods=["GET"])
 def create_artist_form():
     form = ArtistForm()
     return render_template("forms/new_artist.html", form=form)
 
-
+#  creating new artist
 @app.route("/artists/create", methods=["POST"])
 def create_artist_submission():
     flash("Artist " + request.form["name"] + " was successfully listed!")
@@ -510,7 +503,6 @@ def create_artist_submission():
 #  Shows
 #  ----------------------------------------------------------------
 
-
 @app.route("/shows")
 def shows():
     # displays list of shows at /shows
@@ -530,7 +522,6 @@ def shows():
 
     return render_template("pages/shows.html", shows=data)
 
-
 # CREATE SHOW
 @app.route("/shows/create")
 def create_shows():
@@ -538,7 +529,7 @@ def create_shows():
     form = ShowForm()
     return render_template("forms/new_show.html", form=form)
 
-
+# CREATE SHOW
 @app.route("/shows/create", methods=["POST"])
 def create_show_submission():
     # called to create new shows in the db, upon submitting new show listing form
@@ -571,11 +562,9 @@ def create_show_submission():
 def not_found_error(error):
     return render_template("errors/404.html"), 404
 
-
 @app.errorhandler(500)
 def server_error(error):
     return render_template("errors/500.html"), 500
-
 
 if not app.debug:
     file_handler = FileHandler("error.log")
