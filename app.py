@@ -11,12 +11,17 @@ from forms import *
 from flask_migrate import Migrate
 import sys
 from sqlalchemy import func
+from flask_wtf import CSRFProtect
+#protect against Cross-Site Request Forgery (CSRF) attacks
+#When the user submits the form or clicks on the URL, the token is sent along with the request. The server-side application then 
+#verifies that the token is valid and matches the one associated with the user’s session before processing the request
 from models import *
 
 # ----------------------------------------------------------------------------#
 # App Config.
 # ----------------------------------------------------------------------------#
 app = Flask(__name__)
+csrf = CSRFProtect(app)# called out in every form sent throught html files that has POST method used # 
 app.config[
     "SQLALCHEMY_DATABASE_URI"
 ] = "postgresql://postgres:azoozyh1122@localhost:5432/project"
