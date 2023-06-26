@@ -187,3 +187,10 @@ Navigate to project homepage [http://127.0.0.1:5000/](http://127.0.0.1:5000/) or
   - `using pip install --upgrade flask-moment`
   - `Using pip install Werkzeug==2.0.0`
   - `Using pip uninstall Flask and then pip install flask==2.0.3`
+
+
+### AUTHORS
+Udacity
+
+### CONTRIBUTES
+Abdulaziz.I Hijazi
