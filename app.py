@@ -12,16 +12,17 @@ from flask_migrate import Migrate
 import sys
 from sqlalchemy import func
 from flask_wtf import CSRFProtect
-#protect against Cross-Site Request Forgery (CSRF) attacks
-#When the user submits the form or clicks on the URL, the token is sent along with the request. The server-side application then 
-#verifies that the token is valid and matches the one associated with the user’s session before processing the request
+# protect against Cross-Site Request Forgery (CSRF) attacks
+# When the user submits the form or clicks on the URL, the token is sent along with the request. The server-side application then
+# verifies that the token is valid and matches the one associated with the user’s session before processing the request
 from models import *
 
 # ----------------------------------------------------------------------------#
 # App Config.
 # ----------------------------------------------------------------------------#
 app = Flask(__name__)
-csrf = CSRFProtect(app)# called out in every form sent throught html files that has POST method used # 
+# called out in every form sent throught html files that has POST method used #
+csrf = CSRFProtect(app)
 app.config[
     "SQLALCHEMY_DATABASE_URI"
 ] = "postgresql://postgres:azoozyh1122@localhost:5432/project"
@@ -45,7 +46,8 @@ def format_datetime(value, format="medium"):
         format = "EEEE MMMM, d, y 'at' h:mma"
     elif format == "medium":
         format = "EE MM, dd, y h:mma"
-    return babel.dates.format_datetime(date, format, locale="en")  # type: ignore
+    # type: ignore
+    return babel.dates.format_datetime(date, format, locale="en")
 
 
 app.jinja_env.filters["datetime"] = format_datetime
@@ -68,7 +70,8 @@ def venues():
     data = []
     for venue in venue_display:
         area_venues = (
-            Venue.query.filter_by(state=venue.state).filter_by(city=venue.city).all()
+            Venue.query.filter_by(state=venue.state).filter_by(
+                city=venue.city).all()
         )
         venue_data = []
         for venue in area_venues:
@@ -82,7 +85,8 @@ def venues():
                 }
             )
             # to show details on city,state and venues on venues main page#
-        data.append({"city": venue.city, "state": venue.state, "venues": venue_data})
+        data.append(
+            {"city": venue.city, "state": venue.state, "venues": venue_data})
     return render_template(
         "pages/venues.html", areas=data
     )  # areas referres to venues.html#
@@ -92,7 +96,8 @@ def venues():
 def search_venues():
     search_term = request.form.get("search_term", "")
     search_result = (
-        db.session.query(Venue).filter(Venue.name.ilike(f"%{search_term}%")).all()
+        db.session.query(Venue).filter(
+            Venue.name.ilike(f"%{search_term}%")).all()
     )
     data = []
     for result in search_result:
@@ -218,7 +223,8 @@ def create_venue_submission():
         db.session.commit()
         flash("Venue: {0} created successfully".format(venue.name))
     except Exception as err:
-        flash("An error occurred creating the Venue: {0}. Error: {1}".format(err))
+        flash(
+            "An error occurred creating the Venue: {0}. Error: {1}".format(err))
         db.session.rollback()
     return render_template("pages/home.html")
 
@@ -257,7 +263,8 @@ def artists():
 def search_artists():
     search_term = request.form.get("search_term", "")
     search_result = (
-        db.session.query(Artist).filter(Artist.name.ilike(f"%{search_term}%")).all()
+        db.session.query(Artist).filter(
+            Artist.name.ilike(f"%{search_term}%")).all()
     )
     data = []
     for result in search_result:
@@ -280,6 +287,7 @@ def search_artists():
         results=response,
         search_term=request.form.get("search_term", ""),
     )
+
 
 @app.route("/artists/<int:artist_id>")
 def show_artist(artist_id):
@@ -457,6 +465,8 @@ def create_artist_form():
     return render_template("forms/new_artist.html", form=form)
 
 #  creating new artist
+
+
 @app.route("/artists/create", methods=["POST"])
 def create_artist_submission():
     flash("Artist " + request.form["name"] + " was successfully listed!")
@@ -528,6 +538,8 @@ def shows():
     return render_template("pages/shows.html", shows=data)
 
 # CREATE SHOW
+
+
 @app.route("/shows/create")
 def create_shows():
     # renders form. do not touch.
@@ -535,6 +547,8 @@ def create_shows():
     return render_template("forms/new_show.html", form=form)
 
 # CREATE SHOW
+
+
 @app.route("/shows/create", methods=["POST"])
 def create_show_submission():
     # called to create new shows in the db, upon submitting new show listing form
@@ -545,7 +559,8 @@ def create_show_submission():
         start_time = request.form["start_time"]
 
         print(request.form)
-        show = Show(artist_id=artist_id, venue_id=venue_id, start_time=start_time)
+        show = Show(artist_id=artist_id, venue_id=venue_id,
+                    start_time=start_time)
         db.session.add(show)
         db.session.commit()
     except:
@@ -567,14 +582,17 @@ def create_show_submission():
 def not_found_error(error):
     return render_template("errors/404.html"), 404
 
+
 @app.errorhandler(500)
 def server_error(error):
     return render_template("errors/500.html"), 500
 
+
 if not app.debug:
     file_handler = FileHandler("error.log")
     file_handler.setFormatter(
-        Formatter("%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]")
+        Formatter(
+            "%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]")
     )
     app.logger.setLevel(logging.INFO)
     file_handler.setLevel(logging.INFO)
